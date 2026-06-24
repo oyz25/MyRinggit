@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - MyRinggit</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">MyRinggit</div>
+    <div class="navbar-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="expenses.html">Expenses</a>
+      <a href="income.html">Income</a>
+      <a href="ptptn.html">PTPTN</a>
+      <a href="health-score.html">Health Score</a>
+      <a href="badges.html">Badges</a>
+      <a href="reports.html">Reports</a>
+      <a href="admin.html" id="admin-nav-link" class="active hidden">Admin</a>
+    </div>
+    <div class="navbar-actions">
+      <button id="theme-toggle-btn" class="btn btn-secondary btn-small"></button>
+      <button id="logout-btn" class="btn btn-secondary btn-small">Log Out</button>
+    </div>
+  </nav>
+
+  <div class="page-container">
+    <h1>Admin Panel</h1>
+
+    <div id="error-message" class="alert alert-error hidden"></div>
+    <div id="success-message" class="alert alert-success hidden"></div>
+
+    <!-- User Management -->
+    <section class="admin-section">
+      <h2 class="section-heading">User Management</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>University</th>
+              <th>Status</th>
+              <th>Joined</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody">
+            <tr><td colspan="8" class="table-empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Category Management -->
+    <section class="admin-section">
+      <h2 class="section-heading">Categories</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Default</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="categories-tbody">
+            <tr><td colspan="4" class="table-empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card admin-add-card">
+        <h3 class="add-card-heading">Add Category</h3>
+        <form id="category-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cat-name">Name</label>
+              <input type="text" id="cat-name" required placeholder="e.g. Groceries" />
+            </div>
+            <div class="form-group">
+              <label for="cat-type">Type</label>
+              <select id="cat-type">
+                <option value="expense">Expense</option>
+                <option value="income">Income</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-small" id="add-category-btn" style="width: auto;">Add Category</button>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/nav.js"></script>
+  <script src="../js/theme-toggle.js"></script>
+  <script src="../js/admin.js"></script>
+</body>
+</html>

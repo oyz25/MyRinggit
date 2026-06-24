@@ -1,0 +1,155 @@
+/**
+ * Dashboard page: pulls together the spending-limit alert banner, the
+ * income/expense/net summary cards + spending pie chart, the financial
+ * health score donut, and the PTPTN survival countdown.
+ *
+ * All numeric fields from the API arrive as decimal strings, so they're
+ * run through parseFloat() before use.
+ */
+
+const errorMessage = document.getElementById("error-message");
+
+function showError(message) {
+  errorMessage.textContent = message;
+  errorMessage.classList.remove("hidden");
+}
+
+function formatCurrency(value) {
+  return `RM ${parseFloat(value).toFixed(2)}`;
+}
+
+async function loadAlertBanner() {
+  const banner = document.getElementById("alert-banner");
+  const list = document.getElementById("alert-list");
+
+  const [alerts, categories] = await Promise.all([
+    api.get("/categories/limits/alerts"),
+    api.get("/categories?type=expense"),
+  ]);
+
+  if (alerts.length === 0) {
+    return;
+  }
+
+  const categoriesById = new Map(categories.map((c) => [c.category_id, c]));
+  let hasOverLimit = false;
+
+  list.innerHTML = "";
+  for (const alert of alerts) {
+    const category = categoriesById.get(alert.category_id);
+    const categoryName = category ? category.name : `Category #${alert.category_id}`;
+    const status = alert.is_over_limit ? "over your monthly limit" : "near your monthly limit";
+    if (alert.is_over_limit) hasOverLimit = true;
+
+    const item = document.createElement("li");
+    item.textContent = `${categoryName}: ${formatCurrency(alert.spent_so_far)} of ${formatCurrency(alert.monthly_limit)} ` +
+      `(${parseFloat(alert.percent_used).toFixed(0)}%) - ${status}`;
+    list.appendChild(item);
+  }
+
+  banner.classList.toggle("over-limit", hasOverLimit);
+  banner.classList.remove("hidden");
+}
+
+async function loadSummary() {
+  const summary = await api.get("/dashboard/summary");
+
+  const totalIncome = parseFloat(summary.total_income);
+  const totalExpenses = parseFloat(summary.total_expenses);
+  const netBalance = parseFloat(summary.net_balance);
+
+  document.getElementById("summary-income").textContent = formatCurrency(totalIncome);
+  document.getElementById("summary-expenses").textContent = formatCurrency(totalExpenses);
+
+  const netEl = document.getElementById("summary-net");
+  netEl.textContent = formatCurrency(netBalance);
+  netEl.classList.add(netBalance >= 0 ? "positive" : "negative");
+
+  const breakdownCanvas = document.getElementById("expense-breakdown-chart");
+  const breakdownEmpty = document.getElementById("expense-breakdown-empty");
+
+  if (summary.expense_breakdown.length === 0) {
+    breakdownCanvas.classList.add("hidden");
+    breakdownEmpty.classList.remove("hidden");
+  } else {
+    renderExpenseBreakdownChart(breakdownCanvas, summary.expense_breakdown);
+  }
+}
+
+async function loadHealthScore() {
+  const container = document.getElementById("health-score-container");
+
+  let score;
+  try {
+    score = await api.get("/health-score/latest");
+  } catch {
+    container.innerHTML = `
+      <div class="chart-empty">
+        No health score calculated yet. Log some income and expenses, then visit the
+        Health Score page to calculate your first weekly score.
+      </div>
+    `;
+    return;
+  }
+
+  const overall = parseFloat(score.overall_score);
+  document.getElementById("health-score-value").textContent = overall.toFixed(0);
+  renderHealthScoreChart(document.getElementById("health-score-chart"), overall);
+
+  const breakdown = document.getElementById("health-score-breakdown");
+  breakdown.innerHTML = `
+    <div class="breakdown-row"><span>Savings Rate</span><span>${parseFloat(score.savings_rate).toFixed(1)}%</span></div>
+    <div class="breakdown-row"><span>Budget Adherence</span><span>${parseFloat(score.budget_adherence_score).toFixed(1)}%</span></div>
+    <div class="breakdown-row"><span>Consistency</span><span>${parseFloat(score.consistency_score).toFixed(1)}%</span></div>
+    <div class="breakdown-row"><span>Week</span><span>${score.week_start_date} - ${score.week_end_date}</span></div>
+  `;
+}
+
+async function loadSurvivalCountdown() {
+  const content = document.getElementById("countdown-content");
+  const countdown = await api.get("/ptptn/survival-countdown");
+
+  if (countdown.message) {
+    content.innerHTML = `<p class="countdown-message">${countdown.message}</p>`;
+    return;
+  }
+
+  content.innerHTML = `
+    <div class="countdown-stats">
+      <div class="countdown-stat">
+        <div class="summary-label">Remaining Balance</div>
+        <div class="summary-value">${formatCurrency(countdown.remaining_balance)}</div>
+      </div>
+      <div class="countdown-stat">
+        <div class="summary-label">Average Daily Spend</div>
+        <div class="summary-value">${formatCurrency(countdown.average_daily_spend)}</div>
+      </div>
+      <div class="countdown-stat">
+        <div class="summary-label">Days Remaining</div>
+        <div class="summary-value">${countdown.estimated_days_remaining}</div>
+      </div>
+      <div class="countdown-stat">
+        <div class="summary-label">Estimated Runout Date</div>
+        <div class="summary-value">${countdown.estimated_runout_date}</div>
+      </div>
+    </div>
+  `;
+}
+
+document.getElementById("logout-btn").addEventListener("click", () => {
+  clearToken();
+  window.location.href = "login.html";
+});
+
+(async function init() {
+  try {
+    await Promise.all([
+      loadAlertBanner(),
+      loadSummary(),
+      loadHealthScore(),
+      loadSurvivalCountdown(),
+    ]);
+  } catch (err) {
+    showError(err.message || "Failed to load dashboard data.");
+  }
+})();

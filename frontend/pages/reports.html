@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reports - MyRinggit</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">MyRinggit</div>
+    <div class="navbar-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="expenses.html">Expenses</a>
+      <a href="income.html">Income</a>
+      <a href="ptptn.html">PTPTN</a>
+      <a href="health-score.html">Health Score</a>
+      <a href="badges.html">Badges</a>
+      <a href="reports.html" class="active">Reports</a>
+      <a href="admin.html" id="admin-nav-link" class="hidden">Admin</a>
+    </div>
+    <div class="navbar-actions">
+      <button id="theme-toggle-btn" class="btn btn-secondary btn-small"></button>
+      <button id="logout-btn" class="btn btn-secondary btn-small">Log Out</button>
+    </div>
+  </nav>
+
+  <div class="page-container">
+    <h1>Reports</h1>
+
+    <div id="error-message" class="alert alert-error hidden"></div>
+    <div id="success-message" class="alert alert-success hidden"></div>
+
+    <div class="card" style="max-width: none;">
+      <h2 style="margin-top: 0; font-size: 1.1rem;">Download Monthly Report</h2>
+      <p style="color: var(--color-text-muted); font-size: 0.9rem;">
+        Select a month and year to download a PDF summary of your income, expenses, and
+        financial health for that period.
+      </p>
+      <form id="report-form">
+        <div class="form-group">
+          <label for="month">Month</label>
+          <select id="month" name="month"></select>
+        </div>
+        <div class="form-group">
+          <label for="year">Year</label>
+          <select id="year" name="year"></select>
+        </div>
+        <button type="submit" class="btn" id="download-report-btn">Download Monthly Report</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/nav.js"></script>
+  <script src="../js/theme-toggle.js"></script>
+  <script src="../js/reports.js"></script>
+</body>
+</html>

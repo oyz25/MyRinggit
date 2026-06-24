@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expenses - MyRinggit</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">MyRinggit</div>
+    <div class="navbar-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="expenses.html" class="active">Expenses</a>
+      <a href="income.html">Income</a>
+      <a href="ptptn.html">PTPTN</a>
+      <a href="health-score.html">Health Score</a>
+      <a href="badges.html">Badges</a>
+      <a href="reports.html">Reports</a>
+      <a href="admin.html" id="admin-nav-link" class="hidden">Admin</a>
+    </div>
+    <div class="navbar-actions">
+      <button id="theme-toggle-btn" class="btn btn-secondary btn-small"></button>
+      <button id="logout-btn" class="btn btn-secondary btn-small">Log Out</button>
+    </div>
+  </nav>
+
+  <div class="page-container">
+    <h1>Expenses</h1>
+
+    <div id="error-message" class="alert alert-error hidden"></div>
+
+    <div class="card" style="max-width: none; margin-bottom: 1.5rem;">
+      <h2 id="expense-form-heading" style="margin-top: 0; font-size: 1.1rem;">Add Expense</h2>
+      <form id="expense-form">
+        <div class="form-group">
+          <label for="category">Category</label>
+          <select id="category" name="category_id" required>
+            <option value="">Loading categories...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="amount">Amount (RM)</label>
+          <input type="number" id="amount" name="amount" step="0.01" min="0.01" required />
+        </div>
+        <div class="form-group">
+          <label for="description">Description (optional)</label>
+          <input type="text" id="description" name="description" maxlength="255" />
+        </div>
+        <div class="form-group">
+          <label for="expense_date">Date</label>
+          <input type="date" id="expense_date" name="expense_date" required />
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button type="submit" class="btn" id="add-expense-btn" style="flex: 1;">Add Expense</button>
+          <button type="button" class="btn btn-secondary hidden" id="cancel-expense-btn" style="width: auto; padding: 0.6rem 1.25rem;">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <h2 style="font-size: 1.1rem;">Your Expenses</h2>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Amount (RM)</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="expenses-tbody">
+          <tr><td colspan="5" class="table-empty">Loading expenses...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Popup for new badges / category-limit alerts -->
+  <div id="notification-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h2 id="notification-modal-title">Heads up!</h2>
+      <div id="notification-modal-body"></div>
+      <div class="modal-actions">
+        <button id="notification-modal-close" class="btn">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/nav.js"></script>
+  <script src="../js/theme-toggle.js"></script>
+  <script src="../js/expenses.js"></script>
+</body>
+</html>

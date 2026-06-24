@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - MyRinggit</title>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">MyRinggit</div>
+    <div class="navbar-links">
+      <a href="dashboard.html" class="active">Dashboard</a>
+      <a href="expenses.html">Expenses</a>
+      <a href="income.html">Income</a>
+      <a href="ptptn.html">PTPTN</a>
+      <a href="health-score.html">Health Score</a>
+      <a href="badges.html">Badges</a>
+      <a href="reports.html">Reports</a>
+      <a href="admin.html" id="admin-nav-link" class="hidden">Admin</a>
+    </div>
+    <div class="navbar-actions">
+      <button id="theme-toggle-btn" class="btn btn-secondary btn-small"></button>
+      <button id="logout-btn" class="btn btn-secondary btn-small">Log Out</button>
+    </div>
+  </nav>
+
+  <div class="page-container">
+    <h1>Dashboard</h1>
+
+    <div id="error-message" class="alert alert-error hidden"></div>
+
+    <!-- Spending limit alert banner -->
+    <div id="alert-banner" class="alert-banner hidden">
+      <h3>Spending Limit Alerts</h3>
+      <ul id="alert-list"></ul>
+    </div>
+
+    <!-- Income / Expense / Net summary cards -->
+    <div class="summary-cards">
+      <div class="summary-card">
+        <div class="summary-label">Total Income</div>
+        <div class="summary-value" id="summary-income">RM 0.00</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Total Expenses</div>
+        <div class="summary-value" id="summary-expenses">RM 0.00</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-label">Net Balance</div>
+        <div class="summary-value" id="summary-net">RM 0.00</div>
+      </div>
+    </div>
+
+    <!-- PTPTN survival countdown -->
+    <div class="countdown-card">
+      <h2>PTPTN Survival Countdown</h2>
+      <div id="countdown-content">
+        <p class="countdown-message">Loading...</p>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <!-- Financial Health Score -->
+      <div class="chart-card">
+        <h2>Financial Health Score</h2>
+        <div id="health-score-container">
+          <div class="chart-wrapper">
+            <canvas id="health-score-chart"></canvas>
+            <div class="health-score-center" id="health-score-center">
+              <div class="score-value" id="health-score-value">--</div>
+              <div class="score-label">out of 100</div>
+            </div>
+          </div>
+          <div class="health-score-breakdown" id="health-score-breakdown"></div>
+        </div>
+      </div>
+
+      <!-- Spending by category -->
+      <div class="chart-card">
+        <h2>Spending by Category</h2>
+        <div class="chart-wrapper">
+          <canvas id="expense-breakdown-chart"></canvas>
+        </div>
+        <div id="expense-breakdown-empty" class="chart-empty hidden">
+          No expenses recorded yet. Start logging expenses to see your spending breakdown.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/nav.js"></script>
+  <script src="../js/theme-toggle.js"></script>
+  <script src="../js/charts.js"></script>
+  <script src="../js/dashboard.js"></script>
+</body>
+</html>
