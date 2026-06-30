@@ -12,4 +12,6 @@ class UserOut(BaseModel):
     role: str
     university: str | None = None
     is_active: bool
+    current_streak: int
+    longest_streak: int
     created_at: datetime

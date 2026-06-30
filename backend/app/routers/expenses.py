@@ -13,6 +13,7 @@ from app.schemas.category import CategoryLimitAlertOut
 from app.schemas.expense import ExpenseCreate, ExpenseCreateResponse, ExpenseOut
 from app.services.alert_service import check_category_limits
 from app.services.badge_service import evaluate_and_award_badges
+from app.services.streak_service import update_streak_on_expense_logged
 
 router = APIRouter()
 
@@ -45,6 +46,8 @@ def create_expense(
     db.add(expense)
     db.commit()
     db.refresh(expense)
+
+    update_streak_on_expense_logged(db, current_user)
 
     alerts = check_category_limits(db, current_user.user_id, expense.expense_date)
     relevant_alerts = [

@@ -1,8 +1,8 @@
 /**
  * Dashboard page: pulls together the spending-limit alert banner, the
- * income/expense/net summary cards + spending pie chart, the financial
- * health score donut, the PTPTN current semester snapshot, and the
- * living expense countdown (separate from PTPTN/tuition).
+ * income/expense/net summary cards + spending pie chart, the expense-logging
+ * streak, the financial health score donut, the PTPTN current semester
+ * snapshot, and the living expense countdown (separate from PTPTN/tuition).
  *
  * All numeric fields from the API arrive as decimal strings, so they're
  * run through parseFloat() before use.
@@ -75,6 +75,12 @@ async function loadSummary() {
   } else {
     renderExpenseBreakdownChart(breakdownCanvas, summary.expense_breakdown);
   }
+}
+
+async function loadStreaks() {
+  const me = await api.get("/auth/me");
+  document.getElementById("summary-current-streak").textContent = `${me.current_streak} day${me.current_streak === 1 ? "" : "s"}`;
+  document.getElementById("summary-longest-streak").textContent = `${me.longest_streak} day${me.longest_streak === 1 ? "" : "s"}`;
 }
 
 async function loadHealthScore() {
@@ -216,6 +222,7 @@ document.getElementById("logout-btn").addEventListener("click", () => {
     await Promise.all([
       loadAlertBanner(),
       loadSummary(),
+      loadStreaks(),
       loadHealthScore(),
       loadCurrentSemester(),
       loadLivingExpenseCountdown(),

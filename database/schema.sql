@@ -31,16 +31,21 @@ GO
 -- Stores both Student and Admin accounts
 -- =============================================================================
 CREATE TABLE dbo.users (
-    user_id         INT IDENTITY(1,1)   PRIMARY KEY,
-    full_name       NVARCHAR(100)       NOT NULL,
-    email           NVARCHAR(150)       NOT NULL UNIQUE,
-    password_hash   NVARCHAR(255)       NOT NULL,
-    role            NVARCHAR(20)        NOT NULL CONSTRAINT DF_users_role DEFAULT ('student'),
-    university      NVARCHAR(150)       NULL,
-    is_active       BIT                 NOT NULL CONSTRAINT DF_users_is_active DEFAULT (1),
-    created_at      DATETIME2           NOT NULL CONSTRAINT DF_users_created_at DEFAULT (SYSUTCDATETIME()),
-    updated_at      DATETIME2           NULL,
-    CONSTRAINT CK_users_role CHECK (role IN ('student', 'admin'))
+    user_id             INT IDENTITY(1,1)   PRIMARY KEY,
+    full_name           NVARCHAR(100)       NOT NULL,
+    email               NVARCHAR(150)       NOT NULL UNIQUE,
+    password_hash       NVARCHAR(255)       NOT NULL,
+    role                NVARCHAR(20)        NOT NULL CONSTRAINT DF_users_role DEFAULT ('student'),
+    university          NVARCHAR(150)       NULL,
+    is_active           BIT                 NOT NULL CONSTRAINT DF_users_is_active DEFAULT (1),
+    current_streak      INT                 NOT NULL CONSTRAINT DF_users_current_streak DEFAULT (0),
+    longest_streak      INT                 NOT NULL CONSTRAINT DF_users_longest_streak DEFAULT (0),
+    last_activity_date  DATE                NULL,
+    created_at          DATETIME2           NOT NULL CONSTRAINT DF_users_created_at DEFAULT (SYSUTCDATETIME()),
+    updated_at          DATETIME2           NULL,
+    CONSTRAINT CK_users_role CHECK (role IN ('student', 'admin')),
+    CONSTRAINT CK_users_current_streak CHECK (current_streak >= 0),
+    CONSTRAINT CK_users_longest_streak CHECK (longest_streak >= 0)
 );
 GO
 
