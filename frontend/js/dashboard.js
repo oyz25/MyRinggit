@@ -1,7 +1,8 @@
 /**
  * Dashboard page: pulls together the spending-limit alert banner, the
  * income/expense/net summary cards + spending pie chart, the financial
- * health score donut, and the PTPTN survival countdown.
+ * health score donut, the PTPTN current semester snapshot, and the
+ * PTPTN survival countdown.
  *
  * All numeric fields from the API arrive as decimal strings, so they're
  * run through parseFloat() before use.
@@ -105,6 +106,67 @@ async function loadHealthScore() {
   `;
 }
 
+function semesterEndDate(disbursementDateStr) {
+  const d = new Date(`${disbursementDateStr}T00:00:00`);
+  d.setMonth(d.getMonth() + 3);
+  return d;
+}
+
+function formatDate(d) {
+  return d.toISOString().slice(0, 10);
+}
+
+function daysRemainingLabel(endDate) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffDays = Math.round((endDate - today) / (1000 * 60 * 60 * 24));
+  return diffDays >= 0 ? `${diffDays} day${diffDays === 1 ? "" : "s"}` : "Semester ended";
+}
+
+function shortfallFor(disbursement) {
+  const shortfall = parseFloat(disbursement.total_semester_tuition) - parseFloat(disbursement.amount);
+  return shortfall > 0 ? shortfall : 0;
+}
+
+async function loadCurrentSemester() {
+  const content = document.getElementById("current-semester-content");
+  const records = await api.get("/ptptn");
+
+  if (records.length === 0) {
+    content.innerHTML = '<p class="countdown-message">No PTPTN disbursement recorded yet.</p>';
+    return;
+  }
+
+  const latest = [...records].sort((a, b) => (a.disbursement_date < b.disbursement_date ? 1 : -1))[0];
+  const endDate = semesterEndDate(latest.disbursement_date);
+  const shortfall = shortfallFor(latest);
+
+  content.innerHTML = `
+    <div class="countdown-stats">
+      <div class="countdown-stat">
+        <div class="summary-label">PTPTN Amount</div>
+        <div class="summary-value">${formatCurrency(latest.amount)}</div>
+      </div>
+      <div class="countdown-stat">
+        <div class="summary-label">Total Semester Tuition</div>
+        <div class="summary-value">${formatCurrency(latest.total_semester_tuition)}</div>
+      </div>
+      <div class="countdown-stat">
+        <div class="summary-label">Shortfall</div>
+        <div class="summary-value ${shortfall > 0 ? "negative" : "positive"}">${formatCurrency(shortfall)}</div>
+      </div>
+      <div class="countdown-stat">
+        <div class="summary-label">Days Remaining in Semester</div>
+        <div class="summary-value">${daysRemainingLabel(endDate)}</div>
+      </div>
+      <div class="countdown-stat">
+        <div class="summary-label">Next Expected Disbursement</div>
+        <div class="summary-value">${formatDate(endDate)}</div>
+      </div>
+    </div>
+  `;
+}
+
 async function loadSurvivalCountdown() {
   const content = document.getElementById("countdown-content");
   const countdown = await api.get("/ptptn/survival-countdown");
@@ -147,6 +209,7 @@ document.getElementById("logout-btn").addEventListener("click", () => {
       loadAlertBanner(),
       loadSummary(),
       loadHealthScore(),
+      loadCurrentSemester(),
       loadSurvivalCountdown(),
     ]);
   } catch (err) {

@@ -124,17 +124,18 @@ GO
 -- semesters and feeds the survival countdown calculation
 -- =============================================================================
 CREATE TABLE dbo.ptptn_disbursements (
-    disbursement_id     INT IDENTITY(1,1)   PRIMARY KEY,
-    user_id             INT                 NOT NULL,
-    budget_id           INT                 NULL,
-    amount              DECIMAL(10,2)       NOT NULL,
-    disbursement_date   DATE                NOT NULL,
-    expected_next_date  DATE                NULL,
-    remarks             NVARCHAR(255)       NULL,
-    created_at          DATETIME2           NOT NULL CONSTRAINT DF_ptptn_created_at DEFAULT (SYSUTCDATETIME()),
+    disbursement_id         INT IDENTITY(1,1)   PRIMARY KEY,
+    user_id                 INT                 NOT NULL,
+    budget_id               INT                 NULL,
+    amount                  DECIMAL(10,2)       NOT NULL,
+    total_semester_tuition  DECIMAL(10,2)       NOT NULL,
+    disbursement_date       DATE                NOT NULL,
+    remarks                 NVARCHAR(255)       NULL,
+    created_at              DATETIME2           NOT NULL CONSTRAINT DF_ptptn_created_at DEFAULT (SYSUTCDATETIME()),
     CONSTRAINT FK_ptptn_user FOREIGN KEY (user_id) REFERENCES dbo.users(user_id) ON DELETE NO ACTION,
     CONSTRAINT FK_ptptn_budget FOREIGN KEY (budget_id) REFERENCES dbo.budgets(budget_id) ON DELETE SET NULL,
-    CONSTRAINT CK_ptptn_amount CHECK (amount >= 0)
+    CONSTRAINT CK_ptptn_amount CHECK (amount >= 0),
+    CONSTRAINT CK_ptptn_tuition CHECK (total_semester_tuition >= 0)
 );
 GO
 

@@ -7,8 +7,8 @@ from pydantic import BaseModel, ConfigDict
 class PtptnDisbursementCreate(BaseModel):
     budget_id: int | None = None
     amount: Decimal
+    total_semester_tuition: Decimal
     disbursement_date: date
-    expected_next_date: date | None = None
     remarks: str | None = None
 
 
@@ -18,8 +18,8 @@ class PtptnDisbursementOut(BaseModel):
     disbursement_id: int
     budget_id: int | None = None
     amount: Decimal
+    total_semester_tuition: Decimal
     disbursement_date: date
-    expected_next_date: date | None = None
     remarks: str | None = None
 
 
