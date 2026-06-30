@@ -5,8 +5,7 @@ from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.ptptn import PtptnDisbursement
 from app.models.user import User
-from app.schemas.ptptn import PtptnDisbursementCreate, PtptnDisbursementOut, SurvivalCountdownOut
-from app.services.ptptn_service import calculate_survival_countdown
+from app.schemas.ptptn import PtptnDisbursementCreate, PtptnDisbursementOut
 
 router = APIRouter()
 
@@ -35,18 +34,6 @@ def create_disbursement(
     db.commit()
     db.refresh(disbursement)
     return disbursement
-
-
-@router.get("/survival-countdown", response_model=SurvivalCountdownOut)
-def survival_countdown(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """
-    Estimate how many days the remaining PTPTN balance will last,
-    based on the student's recent average daily spending.
-    """
-    return calculate_survival_countdown(db, current_user.user_id)
 
 
 @router.get("/{disbursement_id}", response_model=PtptnDisbursementOut)

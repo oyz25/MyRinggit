@@ -11,7 +11,8 @@ from app.models.expense import Expense
 from app.models.health_score import HealthScore
 from app.models.income import Income
 from app.models.user import User
-from app.schemas.dashboard import CategoryBreakdown, DashboardSummary
+from app.schemas.dashboard import CategoryBreakdown, DashboardSummary, LivingExpenseCountdownOut
+from app.services.living_expense_service import calculate_living_expense_countdown
 
 router = APIRouter()
 
@@ -65,3 +66,16 @@ def dashboard_summary(
         ],
         overall_health_score=latest_score[0] if latest_score else None,
     )
+
+
+@router.get("/living-expense-countdown", response_model=LivingExpenseCountdownOut)
+def living_expense_countdown(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Estimate how many days this month's living money (income excluding PTPTN,
+    minus this month's expenses) will last, based on this month's average
+    daily living spend. PTPTN and tuition are excluded entirely.
+    """
+    return calculate_living_expense_countdown(db, current_user.user_id)

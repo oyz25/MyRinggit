@@ -78,37 +78,6 @@ function renderCurrentSemester(latest) {
   `;
 }
 
-async function loadSurvivalCountdown() {
-  const content = document.getElementById("countdown-content");
-  const countdown = await api.get("/ptptn/survival-countdown");
-
-  if (countdown.message) {
-    content.innerHTML = `<p class="countdown-message">${countdown.message}</p>`;
-    return;
-  }
-
-  content.innerHTML = `
-    <div class="countdown-stats">
-      <div class="countdown-stat">
-        <div class="summary-label">Remaining Balance</div>
-        <div class="summary-value">${formatCurrency(countdown.remaining_balance)}</div>
-      </div>
-      <div class="countdown-stat">
-        <div class="summary-label">Average Daily Spend</div>
-        <div class="summary-value">${formatCurrency(countdown.average_daily_spend)}</div>
-      </div>
-      <div class="countdown-stat">
-        <div class="summary-label">Days Remaining</div>
-        <div class="summary-value">${countdown.estimated_days_remaining}</div>
-      </div>
-      <div class="countdown-stat">
-        <div class="summary-label">Estimated Runout Date</div>
-        <div class="summary-value">${countdown.estimated_runout_date}</div>
-      </div>
-    </div>
-  `;
-}
-
 async function loadDisbursements() {
   const records = await api.get("/ptptn");
 
@@ -183,7 +152,7 @@ async function deleteDisbursement(id, btn) {
   try {
     await api.delete(`/ptptn/${id}`);
     if (editingDisbursementId === id) cancelEditDisbursement();
-    await Promise.all([loadDisbursements(), loadSurvivalCountdown()]);
+    await loadDisbursements();
   } catch (err) {
     showError(err.message || "Failed to delete disbursement.");
     btn.disabled = false;
@@ -216,7 +185,7 @@ ptptnForm.addEventListener("submit", async (event) => {
       ptptnForm.reset();
       document.getElementById("disbursement_date").valueAsDate = new Date();
     }
-    await Promise.all([loadDisbursements(), loadSurvivalCountdown()]);
+    await loadDisbursements();
   } catch (err) {
     showError(err.message || (isEditing ? "Failed to update disbursement." : "Failed to add disbursement."));
   } finally {
@@ -234,7 +203,7 @@ document.getElementById("logout-btn").addEventListener("click", () => {
   document.getElementById("disbursement_date").valueAsDate = new Date();
 
   try {
-    await Promise.all([loadDisbursements(), loadSurvivalCountdown()]);
+    await loadDisbursements();
   } catch (err) {
     showError(err.message || "Failed to load PTPTN data.");
   }

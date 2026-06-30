@@ -2,7 +2,7 @@
  * Dashboard page: pulls together the spending-limit alert banner, the
  * income/expense/net summary cards + spending pie chart, the financial
  * health score donut, the PTPTN current semester snapshot, and the
- * PTPTN survival countdown.
+ * living expense countdown (separate from PTPTN/tuition).
  *
  * All numeric fields from the API arrive as decimal strings, so they're
  * run through parseFloat() before use.
@@ -167,9 +167,9 @@ async function loadCurrentSemester() {
   `;
 }
 
-async function loadSurvivalCountdown() {
-  const content = document.getElementById("countdown-content");
-  const countdown = await api.get("/ptptn/survival-countdown");
+async function loadLivingExpenseCountdown() {
+  const content = document.getElementById("living-expense-countdown-content");
+  const countdown = await api.get("/dashboard/living-expense-countdown");
 
   if (countdown.message) {
     content.innerHTML = `<p class="countdown-message">${countdown.message}</p>`;
@@ -179,12 +179,20 @@ async function loadSurvivalCountdown() {
   content.innerHTML = `
     <div class="countdown-stats">
       <div class="countdown-stat">
+        <div class="summary-label">Living Income (This Month)</div>
+        <div class="summary-value">${formatCurrency(countdown.living_income)}</div>
+      </div>
+      <div class="countdown-stat">
+        <div class="summary-label">Living Expenses (This Month)</div>
+        <div class="summary-value">${formatCurrency(countdown.living_expenses)}</div>
+      </div>
+      <div class="countdown-stat">
         <div class="summary-label">Remaining Balance</div>
         <div class="summary-value">${formatCurrency(countdown.remaining_balance)}</div>
       </div>
       <div class="countdown-stat">
-        <div class="summary-label">Average Daily Spend</div>
-        <div class="summary-value">${formatCurrency(countdown.average_daily_spend)}</div>
+        <div class="summary-label">Average Daily Living Spend</div>
+        <div class="summary-value">${formatCurrency(countdown.average_daily_living_spend)}</div>
       </div>
       <div class="countdown-stat">
         <div class="summary-label">Days Remaining</div>
@@ -210,7 +218,7 @@ document.getElementById("logout-btn").addEventListener("click", () => {
       loadSummary(),
       loadHealthScore(),
       loadCurrentSemester(),
-      loadSurvivalCountdown(),
+      loadLivingExpenseCountdown(),
     ]);
   } catch (err) {
     showError(err.message || "Failed to load dashboard data.");
