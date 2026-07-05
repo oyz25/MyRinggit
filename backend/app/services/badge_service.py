@@ -9,13 +9,15 @@ Supported criteria_type values:
   savings_rate_above       - best-ever savings_rate >= criteria_value
   consistency_score_above  - best-ever consistency_score >= criteria_value
   budget_adherence_above   - best-ever budget_adherence_score >= criteria_value
+  health_streak_weeks      - current trailing streak of consecutive weeks with
+                             overall_score >= 60, skipping a week breaks it
 
 NOTE: 'streak_days' badges are NOT handled here. They're awarded directly by
 app/services/streak_service.py at the moment the expense-logging streak is
 updated, since that's the only place that knows the streak just changed.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 from sqlalchemy import func, select
@@ -84,7 +86,40 @@ def _meets_criteria(db: Session, user_id: int, criteria_type: str, criteria_valu
         )
         return best is not None and best >= criteria_value
 
+    if criteria_type == "health_streak_weeks":
+        streak = _compute_health_streak_weeks(db, user_id)
+        return streak >= criteria_value
+
     return False
+
+
+def _compute_health_streak_weeks(db: Session, user_id: int) -> int:
+    """
+    Returns the current trailing streak of consecutive calendar weeks where the
+    student's health score was >= 60.  A gap (skipped week) or any score below
+    60 resets the streak.  Weeks are identified by week_start_date; consecutive
+    means exactly 7 days apart.
+    """
+    scores = db.scalars(
+        select(HealthScore)
+        .where(HealthScore.user_id == user_id)
+        .order_by(HealthScore.week_start_date.asc())
+    ).all()
+
+    if not scores:
+        return 0
+
+    streak = 1 if scores[0].overall_score >= 60 else 0
+    for i in range(1, len(scores)):
+        prev = scores[i - 1]
+        curr = scores[i]
+        is_consecutive = (curr.week_start_date - prev.week_start_date) == timedelta(days=7)
+        if is_consecutive and curr.overall_score >= 60:
+            streak += 1
+        else:
+            streak = 1 if curr.overall_score >= 60 else 0
+
+    return streak
 
 
 def _award_badge(db: Session, user_id: int, badge_id: int) -> UserBadge:

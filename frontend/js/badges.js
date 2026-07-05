@@ -12,6 +12,17 @@ function showError(message) {
   errorMessage.classList.remove("hidden");
 }
 
+const BADGE_ICONS = {
+  "fire":        "🔥",
+  "trophy":      "🏆",
+  "star":        "⭐",
+  "shoe-prints": "👟",
+};
+
+function badgeIcon(name) {
+  return BADGE_ICONS[name] ?? "🏆";
+}
+
 function formatEarnedDate(value) {
   const date = new Date(value);
   return date.toLocaleDateString("en-MY", { year: "numeric", month: "short", day: "numeric" });
@@ -43,7 +54,7 @@ async function loadBadges() {
     const card = document.createElement("div");
     card.className = `badge-card ${isEarned ? "earned" : "locked"}`;
     card.innerHTML = `
-      <div class="badge-icon">${badge.icon ?? "🏆"}</div>
+      <div class="badge-icon">${badgeIcon(badge.icon)}</div>
       <div class="badge-name">${badge.name}</div>
       <div class="badge-description">${badge.description ?? ""}</div>
       ${isEarned

@@ -38,10 +38,15 @@ GO
 -- criteria_type / criteria_value are evaluated by app/services/badge_service.py,
 -- EXCEPT 'streak_days' which is awarded directly by app/services/streak_service.py
 -- at the moment the streak is updated (see that file for why).
+-- 'health_streak_weeks' is computed dynamically from health_scores history
+-- by badge_service._compute_health_streak_weeks (no extra columns needed).
 -- =============================================================================
 INSERT INTO dbo.badges (name, description, icon, criteria_type, criteria_value) VALUES
-    ('First Step',      'Logged your first expense',                'shoe-prints', 'expenses_logged_count', 1),
-    ('7-Day Streak',    'Logged an expense 7 days in a row',         'fire',        'streak_days',            7),
-    ('14-Day Streak',   'Logged an expense 14 days in a row',        'fire',        'streak_days',           14),
-    ('30-Day Streak',   'Logged an expense 30 days in a row',        'trophy',      'streak_days',           30);
+    ('First Step',         'Logged your first expense',                               'shoe-prints', 'expenses_logged_count', 1),
+    ('7-Day Streak',       'Logged an expense 7 days in a row',                       'fire',        'streak_days',            7),
+    ('14-Day Streak',      'Logged an expense 14 days in a row',                      'fire',        'streak_days',           14),
+    ('30-Day Streak',      'Logged an expense 30 days in a row',                      'trophy',      'streak_days',           30),
+    ('Healthy Week',       'Maintained a 60+ Health Score for 1 week in a row',       'star',        'health_streak_weeks',    1),
+    ('Healthy Fortnight',  'Maintained a 60+ Health Score for 2 weeks in a row',      'star',        'health_streak_weeks',    2),
+    ('Healthy Month',      'Maintained a 60+ Health Score for 4 weeks in a row',      'trophy',      'health_streak_weeks',    4);
 GO
