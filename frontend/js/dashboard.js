@@ -80,7 +80,6 @@ async function loadSummary() {
 async function loadStreaks() {
   const me = await api.get("/auth/me");
   document.getElementById("summary-current-streak").textContent = `${me.current_streak} day${me.current_streak === 1 ? "" : "s"}`;
-  document.getElementById("summary-longest-streak").textContent = `${me.longest_streak} day${me.longest_streak === 1 ? "" : "s"}`;
 }
 
 async function loadHealthScore() {

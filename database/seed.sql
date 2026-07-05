@@ -35,16 +35,13 @@ GO
 
 -- =============================================================================
 -- Badge catalog
--- criteria_type / criteria_value are evaluated by app/services/badge_service.py
+-- criteria_type / criteria_value are evaluated by app/services/badge_service.py,
+-- EXCEPT 'streak_days' which is awarded directly by app/services/streak_service.py
+-- at the moment the streak is updated (see that file for why).
 -- =============================================================================
 INSERT INTO dbo.badges (name, description, icon, criteria_type, criteria_value) VALUES
-    ('First Step',      'Logged your first expense',                'shoe-prints',     'expenses_logged_count',    1),
-    ('Habit Builder',   'Logged 10 expenses',                        'repeat',          'expenses_logged_count',    10),
-    ('Tracking Pro',    'Logged 50 expenses',                        'medal',           'expenses_logged_count',    50),
-    ('First Income',    'Logged your first income',                  'coins',           'income_logged_count',      1),
-    ('Financially Fit', 'Reached a financial health score of 70+',   'heart-pulse',     'health_score_above',       70),
-    ('Money Master',    'Reached a financial health score of 90+',   'crown',           'health_score_above',       90),
-    ('Super Saver',     'Achieved a savings rate score of 70+',      'piggy-bank',      'savings_rate_above',       70),
-    ('Daily Tracker',   'Logged activity every day for a week',      'calendar-check',  'consistency_score_above',  100),
-    ('On Budget',       'Stayed within budget for a full week',      'scale-balanced',  'budget_adherence_above',   100);
+    ('First Step',      'Logged your first expense',                'shoe-prints', 'expenses_logged_count', 1),
+    ('7-Day Streak',    'Logged an expense 7 days in a row',         'fire',        'streak_days',            7),
+    ('14-Day Streak',   'Logged an expense 14 days in a row',        'fire',        'streak_days',           14),
+    ('30-Day Streak',   'Logged an expense 30 days in a row',        'trophy',      'streak_days',           30);
 GO

@@ -9,6 +9,10 @@ Supported criteria_type values:
   savings_rate_above       - best-ever savings_rate >= criteria_value
   consistency_score_above  - best-ever consistency_score >= criteria_value
   budget_adherence_above   - best-ever budget_adherence_score >= criteria_value
+
+NOTE: 'streak_days' badges are NOT handled here. They're awarded directly by
+app/services/streak_service.py at the moment the expense-logging streak is
+updated, since that's the only place that knows the streak just changed.
 """
 
 from datetime import datetime

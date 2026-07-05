@@ -47,7 +47,7 @@ def create_expense(
     db.commit()
     db.refresh(expense)
 
-    update_streak_on_expense_logged(db, current_user)
+    streak_badges = update_streak_on_expense_logged(db, current_user)
 
     alerts = check_category_limits(db, current_user.user_id, expense.expense_date)
     relevant_alerts = [
@@ -60,7 +60,7 @@ def create_expense(
     return ExpenseCreateResponse(
         **ExpenseOut.model_validate(expense).model_dump(),
         alerts=relevant_alerts,
-        new_badges=[BadgeOut.model_validate(badge) for badge in new_badges],
+        new_badges=[BadgeOut.model_validate(badge) for badge in streak_badges + new_badges],
     )
 
 

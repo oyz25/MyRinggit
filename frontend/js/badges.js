@@ -1,6 +1,7 @@
 /**
- * Badges page: shows the full badge catalog, highlighting badges the
- * current user has earned and greying out the ones they haven't.
+ * Badges page: shows the longest-ever streak, plus the full badge catalog,
+ * highlighting badges the current user has earned and greying out the
+ * ones they haven't.
  */
 
 const errorMessage = document.getElementById("error-message");
@@ -14,6 +15,11 @@ function showError(message) {
 function formatEarnedDate(value) {
   const date = new Date(value);
   return date.toLocaleDateString("en-MY", { year: "numeric", month: "short", day: "numeric" });
+}
+
+async function loadLongestStreak() {
+  const me = await api.get("/auth/me");
+  document.getElementById("summary-longest-streak").textContent = `${me.longest_streak} day${me.longest_streak === 1 ? "" : "s"}`;
 }
 
 async function loadBadges() {
@@ -55,7 +61,7 @@ document.getElementById("logout-btn").addEventListener("click", () => {
 
 (async function init() {
   try {
-    await loadBadges();
+    await Promise.all([loadLongestStreak(), loadBadges()]);
   } catch (err) {
     showError(err.message || "Failed to load badges.");
   }
