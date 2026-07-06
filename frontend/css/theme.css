@@ -12,6 +12,13 @@
   --color-danger: #dc2626;
   --color-warning: #d97706;
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+  /* Spending heatmap: light mode — darker = more spent */
+  --heat-0: #e5e7eb;      --heat-0-text: #6b7280;
+  --heat-1: #fde68a;      --heat-1-text: #92400e;
+  --heat-2: #fb923c;      --heat-2-text: #ffffff;
+  --heat-3: #ef4444;      --heat-3-text: #ffffff;
+  --heat-4: #991b1b;      --heat-4-text: #ffffff;
 }
 
 [data-theme="dark"] {
@@ -26,4 +33,11 @@
   --color-danger: #f87171;
   --color-warning: #fbbf24;
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4);
+
+  /* Spending heatmap: dark mode — brighter = more spent (can't go darker on dark bg) */
+  --heat-0: #374151;      --heat-0-text: #6b7280;
+  --heat-1: #7f1d1d;      --heat-1-text: #fecaca;
+  --heat-2: #b91c1c;      --heat-2-text: #ffffff;
+  --heat-3: #ef4444;      --heat-3-text: #ffffff;
+  --heat-4: #fca5a5;      --heat-4-text: #7f1d1d;
 }

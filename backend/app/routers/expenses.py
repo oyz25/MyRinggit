@@ -100,6 +100,26 @@ def delete_expense(
     db.commit()
 
 
+@router.get("/summary/by-day")
+def summary_by_day(
+    start_date: date | None = None,
+    end_date: date | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Daily expense totals — feeds the spending heatmap."""
+    query = (
+        db.query(Expense.expense_date, func.sum(Expense.amount).label("total_amount"))
+        .filter(Expense.user_id == current_user.user_id)
+    )
+    if start_date is not None:
+        query = query.filter(Expense.expense_date >= start_date)
+    if end_date is not None:
+        query = query.filter(Expense.expense_date <= end_date)
+    rows = query.group_by(Expense.expense_date).order_by(Expense.expense_date).all()
+    return [{"date": str(expense_date), "total_amount": total} for expense_date, total in rows]
+
+
 @router.get("/summary/by-category")
 def summary_by_category(
     start_date: date | None = None,

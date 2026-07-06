@@ -37,7 +37,7 @@
       <ul id="alert-list"></ul>
     </div>
 
-    <!-- Income / Expense / Net summary cards -->
+    <!-- Income / Expense / Net / Streak summary cards -->
     <div class="summary-cards">
       <div class="summary-card">
         <div class="summary-label">Total Income</div>
@@ -73,17 +73,44 @@
       </div>
     </div>
 
-    <div class="dashboard-grid">
-      <!-- Financial Health Score -->
+    <!-- Monthly spending heatmap (centrepiece) -->
+    <div class="chart-card" style="margin-bottom: 1.5rem;">
+      <div class="heatmap-header">
+        <h2>Monthly Spending</h2>
+        <span id="heatmap-month-label" class="heatmap-month"></span>
+      </div>
+      <div class="heatmap-day-labels">
+        <div>Mon</div>
+        <div>Tue</div>
+        <div>Wed</div>
+        <div>Thu</div>
+        <div>Fri</div>
+        <div>Sat</div>
+        <div>Sun</div>
+      </div>
+      <div id="heatmap-grid" class="heatmap-grid">
+        <p class="countdown-message">Loading...</p>
+      </div>
+      <div class="heatmap-legend">
+        <span class="heatmap-legend-label">Less</span>
+        <div class="heatmap-legend-cell heat-0"></div>
+        <div class="heatmap-legend-cell heat-1"></div>
+        <div class="heatmap-legend-cell heat-2"></div>
+        <div class="heatmap-legend-cell heat-3"></div>
+        <div class="heatmap-legend-cell heat-4"></div>
+        <span class="heatmap-legend-label">More</span>
+      </div>
+    </div>
+
+    <!-- Bottom row: compact health score + spending by category -->
+    <div class="dashboard-bottom">
+      <!-- Financial Health Score (compact widget) -->
       <div class="chart-card">
-        <h2>Financial Health Score</h2>
+        <h2>Health Score</h2>
         <div id="health-score-container">
-          <div class="chart-wrapper">
-            <canvas id="health-score-chart"></canvas>
-            <div class="health-score-center" id="health-score-center">
-              <div class="score-value" id="health-score-value">--</div>
-              <div class="score-label">out of 100</div>
-            </div>
+          <div class="compact-score-display">
+            <div class="compact-score-value" id="health-score-value">--</div>
+            <div class="compact-score-label">out of 100</div>
           </div>
           <div class="health-score-breakdown" id="health-score-breakdown"></div>
         </div>
