@@ -2,6 +2,38 @@
  * Reusable Chart.js builders for the dashboard.
  */
 
+// ─── Theme-aware color helpers ─────────────────────────────────────────────
+
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#1f2933";
+}
+
+// Push current theme text color into Chart.js global defaults so every chart
+// inherits it without explicit per-chart wiring.
+function syncChartColors() {
+  const color = cssVar("--color-text");
+  console.log(
+    "[MyRinggit] chart theme sync — --color-text:", JSON.stringify(color),
+    "| data-theme:", document.documentElement.getAttribute("data-theme"),
+  );
+  Chart.defaults.color = color;
+}
+
+syncChartColors(); // apply on first load
+
+// Charts registered here get a re-render (so generateLabels re-reads cssVar)
+// whenever data-theme changes.
+const _themedCharts = new Set();
+
+new MutationObserver(() => {
+  syncChartColors();
+  for (const chart of _themedCharts) {
+    chart.update("none");
+  }
+}).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+// ──────────────────────────────────────────────────────────────────────────
+
 const CHART_COLORS = [
   "#2563eb",
   "#16a34a",
@@ -54,6 +86,7 @@ function renderHealthScoreChart(canvas, score) {
       plugins: {
         legend: { display: false },
         tooltip: { enabled: false },
+        datalabels: { display: false },
       },
       maintainAspectRatio: false,
     },
@@ -70,29 +103,62 @@ function renderHealthScoreChart(canvas, score) {
 function renderExpenseBreakdownChart(canvas, breakdown) {
   const labels = breakdown.map((row) => row.category_name);
   const values = breakdown.map((row) => parseFloat(row.total_amount));
+  const total = values.reduce((a, b) => a + b, 0);
+  const colors = labels.map((_, i) => CHART_COLORS[i % CHART_COLORS.length]);
 
-  return new Chart(canvas, {
+  const chart = new Chart(canvas, {
     type: "pie",
     data: {
       labels,
-      datasets: [
-        {
-          data: values,
-          backgroundColor: labels.map((_, i) => CHART_COLORS[i % CHART_COLORS.length]),
-          borderWidth: 1,
-        },
-      ],
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        borderWidth: 1,
+      }],
     },
     options: {
       maintainAspectRatio: false,
       plugins: {
-        legend: { position: "bottom" },
+        legend: {
+          position: "right",
+          labels: {
+            color: cssVar("--color-text"),
+            generateLabels: (chart) => {
+              const textColor = cssVar("--color-text");
+              return chart.data.labels.map((label, i) => ({
+                text: `${label} — RM ${chart.data.datasets[0].data[i].toFixed(2)}`,
+                fillStyle: colors[i],
+                strokeStyle: colors[i],
+                fontColor: textColor,
+                lineWidth: 0,
+                index: i,
+                hidden: false,
+              }));
+            },
+            padding: 12,
+            boxWidth: 12,
+            font: { size: 12 },
+          },
+        },
         tooltip: {
           callbacks: {
-            label: (context) => `${context.label}: RM ${context.parsed.toFixed(2)}`,
+            label: (context) => {
+              const pct = (context.parsed / total * 100).toFixed(1);
+              return `${context.label}: RM ${context.parsed.toFixed(2)} (${pct}%)`;
+            },
           },
+        },
+        datalabels: {
+          // Hide label on slices smaller than 5% to avoid overlap
+          display: (context) =>
+            context.dataset.data[context.dataIndex] / total >= 0.05,
+          formatter: (value) => `${(value / total * 100).toFixed(1)}%`,
+          color: "#fff",
+          font: { weight: "bold", size: 12 },
         },
       },
     },
   });
+  _themedCharts.add(chart);
+  return chart;
 }

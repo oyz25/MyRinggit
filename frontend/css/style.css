@@ -505,12 +505,25 @@ tbody tr:last-child td {
 .heatmap-cell {
   border-radius: 6px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 0.82rem;
-  font-weight: 500;
+  gap: 2px;
   cursor: default;
   transition: opacity 0.12s;
+}
+
+.heatmap-day {
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.heatmap-amount {
+  font-size: 0.62rem;
+  font-weight: 500;
+  line-height: 1;
+  opacity: 0.85;
 }
 
 .heatmap-cell:not(.heat-empty):hover {

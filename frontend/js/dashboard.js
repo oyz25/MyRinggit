@@ -180,9 +180,11 @@ async function loadHeatmap() {
 
     const cell = document.createElement("div");
     cell.className = `heatmap-cell heat-${heatLevel(amount, max)}`;
-    cell.textContent = d;
     if (amount > 0) {
+      cell.innerHTML = `<span class="heatmap-day">${d}</span><span class="heatmap-amount">RM${Math.round(amount)}</span>`;
       cell.title = `${dateStr}: RM ${amount.toFixed(2)}`;
+    } else {
+      cell.innerHTML = `<span class="heatmap-day">${d}</span>`;
     }
     grid.appendChild(cell);
   }

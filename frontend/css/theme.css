@@ -34,10 +34,12 @@
   --color-warning: #fbbf24;
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4);
 
-  /* Spending heatmap: dark mode — brighter = more spent (can't go darker on dark bg) */
+  /* Spending heatmap: heat-1..4 are IDENTICAL to light mode so the scale reads
+     the same in both themes. Only heat-0 (no spend) differs to stay visible
+     on the dark surface. */
   --heat-0: #374151;      --heat-0-text: #6b7280;
-  --heat-1: #7f1d1d;      --heat-1-text: #fecaca;
-  --heat-2: #b91c1c;      --heat-2-text: #ffffff;
+  --heat-1: #fde68a;      --heat-1-text: #92400e;
+  --heat-2: #fb923c;      --heat-2-text: #ffffff;
   --heat-3: #ef4444;      --heat-3-text: #ffffff;
-  --heat-4: #fca5a5;      --heat-4-text: #7f1d1d;
+  --heat-4: #991b1b;      --heat-4-text: #ffffff;
 }
