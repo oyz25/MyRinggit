@@ -2,7 +2,7 @@
 
 A full-stack student finance management system built for Malaysian university students, with a focus on helping recipients of the PTPTN loan track and manage their disbursements responsibly.
 
-Final Year Project (FYP) — Diploma in Information Technology, SEGi College Kota Damansara.
+Final Year Project (FYP) — Diploma in Information Technology, SEGi College.
 
 ## About
 
