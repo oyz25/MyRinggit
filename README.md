@@ -1,4 +1,4 @@
-MyRinggit
+# MyRinggit 💰
 
 A full-stack student finance management system built for Malaysian university students, with a focus on helping recipients of the PTPTN loan track and manage their disbursements responsibly.
 
@@ -67,6 +67,6 @@ This project was developed using **Agile Scrum**, structured around a 12-week Ga
 
 ## Author
 
-Developed by OYZ as a Final Year Project
+Developed by **OYZ** as a Final Year Project, SEGi College.
 
 ## License
