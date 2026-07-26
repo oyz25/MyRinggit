@@ -56,17 +56,12 @@ cp .env.example .env
 # (add your specific migration command here)
 
 # Start the server
-uvicorn main:app --reload
+cd backend
+python -m uvicorn app.main:app --reload
 ```
 
 Visit `http://localhost:8000` to view the app.
 
-## Project Methodology
-
-This project was developed using **Agile Scrum**, structured around a 12-week Gantt chart, with iterative development and regular check-ins with the project supervisor.
-
-## Author
-
-Developed by **OYZ** as a Final Year Project, SEGi College.
-
-## License
+Screenshots
+<img width="1919" height="659" alt="image" src="https://github.com/user-attachments/assets/4b351c32-e266-4a70-b068-a5f6170945fd" />
+<img width="1919" height="817" alt="image" src="https://github.com/user-attachments/assets/db65fca7-6d6b-4b6d-92ef-5456cb154462" />
