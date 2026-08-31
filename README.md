@@ -2,8 +2,6 @@
 
 A full-stack student finance management system built for Malaysian university students, with a focus on helping recipients of the PTPTN loan track and manage their disbursements responsibly.
 
-Final Year Project (FYP) — Diploma in Information Technology, SEGi College.
-
 ## About
 
 Managing a PTPTN disbursement is harder than it sounds — the money has to stretch across tuition and living costs for an entire semester, and it's easy to lose track of how much is actually left. 
@@ -59,8 +57,6 @@ cp .env.example .env
 cd backend
 python -m uvicorn app.main:app --reload
 ```
-
-Visit `http://localhost:8000` to view the app.
 
 Screenshots
 <img width="1919" height="659" alt="image" src="https://github.com/user-attachments/assets/4b351c32-e266-4a70-b068-a5f6170945fd" />
