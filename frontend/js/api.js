@@ -3,7 +3,7 @@
  * Attaches the JWT token (if present) and resolves the backend base URL.
  */
 
-const API_BASE_URL = "https://my-ringgit.vercel.app";
+const API_BASE_URL = "https://my-ringgit.vercel.app/api";
 
 const TOKEN_KEY = "myringgit_token";
 
