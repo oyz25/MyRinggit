@@ -1,9 +1,9 @@
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
 
-# Database (SQL Server via ODBC)
+# Database (SQL Server via pymssql, no system ODBC library needed)
 sqlalchemy==2.0.35
-pyodbc==5.1.0
+pymssql==2.3.1
 
 # Auth & security
 python-jose[cryptography]==3.3.0
