@@ -24,7 +24,7 @@ MyRinggit was built to solve that problem directly, with budgeting and tracking 
 | Layer | Technology |
 |---|---|
 | Backend | Python, FastAPI |
-| Frontend | HTML, CSS, JavaScript, Chart.js |
+| Frontend | HTML, CSS, TypeScript (Vite), Chart.js |
 | Database | Microsoft SQL Server 2022 |
 | Auth | JWT with Role-Based Access Control (RBAC) |
 | Reporting | ReportLab (PDF generation) |

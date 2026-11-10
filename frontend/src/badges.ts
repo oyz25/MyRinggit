@@ -4,39 +4,40 @@
  * ones they haven't.
  */
 
-const errorMessage = document.getElementById("error-message");
-const badgesGrid = document.getElementById("badges-grid");
+import { api, clearToken, errorMessage } from "./api";
+import { byId } from "./dom";
+import { formatDisplayDate } from "./format";
+import type { Badge, User, UserBadge } from "./types";
 
-function showError(message) {
-  errorMessage.textContent = message;
-  errorMessage.classList.remove("hidden");
+const errorEl = byId("error-message");
+const badgesGrid = byId("badges-grid");
+
+function showError(message: string): void {
+  errorEl.textContent = message;
+  errorEl.classList.remove("hidden");
 }
 
-const BADGE_ICONS = {
+const BADGE_ICONS: Record<string, string> = {
   "fire":        "🔥",
   "trophy":      "🏆",
   "star":        "⭐",
   "shoe-prints": "👟",
 };
 
-function badgeIcon(name) {
-  return BADGE_ICONS[name] ?? "🏆";
+function badgeIcon(name: string | null): string {
+  return (name !== null ? BADGE_ICONS[name] : undefined) ?? "🏆";
 }
 
-function formatEarnedDate(value) {
-  const date = new Date(value);
-  return date.toLocaleDateString("en-MY", { year: "numeric", month: "short", day: "numeric" });
+async function loadLongestStreak(): Promise<void> {
+  const me = await api.get<User>("/auth/me");
+  byId("summary-longest-streak").textContent =
+    `${me.longest_streak} day${me.longest_streak === 1 ? "" : "s"}`;
 }
 
-async function loadLongestStreak() {
-  const me = await api.get("/auth/me");
-  document.getElementById("summary-longest-streak").textContent = `${me.longest_streak} day${me.longest_streak === 1 ? "" : "s"}`;
-}
-
-async function loadBadges() {
+async function loadBadges(): Promise<void> {
   const [catalog, earned] = await Promise.all([
-    api.get("/badges/catalog"),
-    api.get("/badges/me"),
+    api.get<Badge[]>("/badges/catalog"),
+    api.get<UserBadge[]>("/badges/me"),
   ]);
 
   const earnedById = new Map(earned.map((b) => [b.badge_id, b]));
@@ -49,23 +50,22 @@ async function loadBadges() {
   badgesGrid.innerHTML = "";
   for (const badge of catalog) {
     const earnedBadge = earnedById.get(badge.badge_id);
-    const isEarned = Boolean(earnedBadge);
 
     const card = document.createElement("div");
-    card.className = `badge-card ${isEarned ? "earned" : "locked"}`;
+    card.className = `badge-card ${earnedBadge ? "earned" : "locked"}`;
     card.innerHTML = `
       <div class="badge-icon">${badgeIcon(badge.icon)}</div>
       <div class="badge-name">${badge.name}</div>
       <div class="badge-description">${badge.description ?? ""}</div>
-      ${isEarned
-        ? `<div class="badge-status earned-status">Earned ${formatEarnedDate(earnedBadge.earned_at)}</div>`
+      ${earnedBadge
+        ? `<div class="badge-status earned-status">Earned ${formatDisplayDate(earnedBadge.earned_at)}</div>`
         : `<div class="badge-status locked-status">🔒 Locked</div>`}
     `;
     badgesGrid.appendChild(card);
   }
 }
 
-document.getElementById("logout-btn").addEventListener("click", () => {
+byId("logout-btn").addEventListener("click", () => {
   clearToken();
   window.location.href = "login.html";
 });
@@ -74,6 +74,6 @@ document.getElementById("logout-btn").addEventListener("click", () => {
   try {
     await Promise.all([loadLongestStreak(), loadBadges()]);
   } catch (err) {
-    showError(err.message || "Failed to load badges.");
+    showError(errorMessage(err, "Failed to load badges."));
   }
 })();

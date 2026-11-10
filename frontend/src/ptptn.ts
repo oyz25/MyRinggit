@@ -1,49 +1,34 @@
-const errorMessage = document.getElementById("error-message");
-const ptptnForm = document.getElementById("ptptn-form");
-const ptptnTbody = document.getElementById("ptptn-tbody");
-const addDisbursementBtn = document.getElementById("add-disbursement-btn");
-const cancelDisbursementBtn = document.getElementById("cancel-disbursement-btn");
-const ptptnFormHeading = document.getElementById("ptptn-form-heading");
+import { api, clearToken, errorMessage } from "./api";
+import { byId } from "./dom";
+import { formatCurrency, formatDate } from "./format";
+import { daysRemainingLabel, latestDisbursement, semesterEndDate, shortfallFor } from "./semester";
+import type { PtptnDisbursement, PtptnPayload } from "./types";
 
-let editingDisbursementId = null;
+const errorEl = byId("error-message");
+const ptptnForm = byId<HTMLFormElement>("ptptn-form");
+const ptptnTbody = byId("ptptn-tbody");
+const addDisbursementBtn = byId<HTMLButtonElement>("add-disbursement-btn");
+const cancelDisbursementBtn = byId<HTMLButtonElement>("cancel-disbursement-btn");
+const ptptnFormHeading = byId("ptptn-form-heading");
 
-function showError(message) {
-  errorMessage.textContent = message;
-  errorMessage.classList.remove("hidden");
+const amountInput = byId<HTMLInputElement>("amount");
+const tuitionInput = byId<HTMLInputElement>("total_semester_tuition");
+const dateInput = byId<HTMLInputElement>("disbursement_date");
+const remarksInput = byId<HTMLInputElement>("remarks");
+
+let editingDisbursementId: number | null = null;
+
+function showError(message: string): void {
+  errorEl.textContent = message;
+  errorEl.classList.remove("hidden");
 }
 
-function hideError() {
-  errorMessage.classList.add("hidden");
+function hideError(): void {
+  errorEl.classList.add("hidden");
 }
 
-function formatCurrency(value) {
-  return `RM ${parseFloat(value).toFixed(2)}`;
-}
-
-function semesterEndDate(disbursementDateStr) {
-  const d = new Date(`${disbursementDateStr}T00:00:00`);
-  d.setMonth(d.getMonth() + 3);
-  return d;
-}
-
-function formatDate(d) {
-  return d.toISOString().slice(0, 10);
-}
-
-function daysRemainingLabel(endDate) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const diffDays = Math.round((endDate - today) / (1000 * 60 * 60 * 24));
-  return diffDays >= 0 ? `${diffDays} day${diffDays === 1 ? "" : "s"}` : "Semester ended";
-}
-
-function shortfallFor(disbursement) {
-  const shortfall = parseFloat(disbursement.total_semester_tuition) - parseFloat(disbursement.amount);
-  return shortfall > 0 ? shortfall : 0;
-}
-
-function renderCurrentSemester(latest) {
-  const content = document.getElementById("current-semester-content");
+function renderCurrentSemester(latest: PtptnDisbursement | undefined): void {
+  const content = byId("current-semester-content");
   if (!latest) {
     content.innerHTML = '<p class="countdown-message">No PTPTN disbursement recorded yet.</p>';
     return;
@@ -78,12 +63,12 @@ function renderCurrentSemester(latest) {
   `;
 }
 
-async function loadDisbursements() {
-  const records = await api.get("/ptptn");
+async function loadDisbursements(): Promise<PtptnDisbursement[]> {
+  const records = await api.get<PtptnDisbursement[]>("/ptptn");
 
   if (records.length === 0) {
     ptptnTbody.innerHTML = '<tr><td colspan="7" class="table-empty">No disbursements recorded yet.</td></tr>';
-    renderCurrentSemester(null);
+    renderCurrentSemester(undefined);
     return records;
   }
 
@@ -109,44 +94,43 @@ async function loadDisbursements() {
     ptptnTbody.appendChild(row);
   }
 
-  ptptnTbody.querySelectorAll("[data-edit-id]").forEach((btn) => {
+  ptptnTbody.querySelectorAll<HTMLButtonElement>("[data-edit-id]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const disbursement = records.find((r) => r.disbursement_id === parseInt(btn.dataset.editId, 10));
+      const disbursement = records.find((r) => r.disbursement_id === parseInt(btn.dataset.editId ?? "", 10));
       if (disbursement) startEditDisbursement(disbursement);
     });
   });
 
-  ptptnTbody.querySelectorAll("[data-delete-id]").forEach((btn) => {
-    btn.addEventListener("click", () => deleteDisbursement(parseInt(btn.dataset.deleteId, 10), btn));
+  ptptnTbody.querySelectorAll<HTMLButtonElement>("[data-delete-id]").forEach((btn) => {
+    btn.addEventListener("click", () => deleteDisbursement(parseInt(btn.dataset.deleteId ?? "", 10), btn));
   });
 
-  const latest = [...records].sort((a, b) => (a.disbursement_date < b.disbursement_date ? 1 : -1))[0];
-  renderCurrentSemester(latest);
+  renderCurrentSemester(latestDisbursement(records));
   return records;
 }
 
-function startEditDisbursement(disbursement) {
+function startEditDisbursement(disbursement: PtptnDisbursement): void {
   editingDisbursementId = disbursement.disbursement_id;
-  document.getElementById("amount").value = parseFloat(disbursement.amount).toFixed(2);
-  document.getElementById("total_semester_tuition").value = parseFloat(disbursement.total_semester_tuition).toFixed(2);
-  document.getElementById("disbursement_date").value = disbursement.disbursement_date;
-  document.getElementById("remarks").value = disbursement.remarks ?? "";
+  amountInput.value = parseFloat(disbursement.amount).toFixed(2);
+  tuitionInput.value = parseFloat(disbursement.total_semester_tuition).toFixed(2);
+  dateInput.value = disbursement.disbursement_date;
+  remarksInput.value = disbursement.remarks ?? "";
   ptptnFormHeading.textContent = "Edit Disbursement";
   addDisbursementBtn.textContent = "Update Disbursement";
   cancelDisbursementBtn.classList.remove("hidden");
   ptptnForm.scrollIntoView({ behavior: "smooth" });
 }
 
-function cancelEditDisbursement() {
+function cancelEditDisbursement(): void {
   editingDisbursementId = null;
   ptptnForm.reset();
-  document.getElementById("disbursement_date").valueAsDate = new Date();
+  dateInput.valueAsDate = new Date();
   ptptnFormHeading.textContent = "Add Disbursement";
   addDisbursementBtn.textContent = "Add Disbursement";
   cancelDisbursementBtn.classList.add("hidden");
 }
 
-async function deleteDisbursement(id, btn) {
+async function deleteDisbursement(id: number, btn: HTMLButtonElement): Promise<void> {
   if (!confirm("Delete this disbursement? This cannot be undone.")) return;
   btn.disabled = true;
   try {
@@ -154,7 +138,7 @@ async function deleteDisbursement(id, btn) {
     if (editingDisbursementId === id) cancelEditDisbursement();
     await loadDisbursements();
   } catch (err) {
-    showError(err.message || "Failed to delete disbursement.");
+    showError(errorMessage(err, "Failed to delete disbursement."));
     btn.disabled = false;
   }
 }
@@ -165,11 +149,11 @@ ptptnForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   hideError();
 
-  const payload = {
-    amount: document.getElementById("amount").value,
-    total_semester_tuition: document.getElementById("total_semester_tuition").value,
-    disbursement_date: document.getElementById("disbursement_date").value,
-    remarks: document.getElementById("remarks").value.trim() || null,
+  const payload: PtptnPayload = {
+    amount: amountInput.value,
+    total_semester_tuition: tuitionInput.value,
+    disbursement_date: dateInput.value,
+    remarks: remarksInput.value.trim() || null,
   };
 
   const isEditing = editingDisbursementId !== null;
@@ -178,33 +162,33 @@ ptptnForm.addEventListener("submit", async (event) => {
 
   try {
     if (isEditing) {
-      await api.put(`/ptptn/${editingDisbursementId}`, payload);
+      await api.put<PtptnDisbursement>(`/ptptn/${editingDisbursementId}`, payload);
       cancelEditDisbursement();
     } else {
-      await api.post("/ptptn", payload);
+      await api.post<PtptnDisbursement>("/ptptn", payload);
       ptptnForm.reset();
-      document.getElementById("disbursement_date").valueAsDate = new Date();
+      dateInput.valueAsDate = new Date();
     }
     await loadDisbursements();
   } catch (err) {
-    showError(err.message || (isEditing ? "Failed to update disbursement." : "Failed to add disbursement."));
+    showError(errorMessage(err, isEditing ? "Failed to update disbursement." : "Failed to add disbursement."));
   } finally {
     addDisbursementBtn.disabled = false;
     addDisbursementBtn.textContent = editingDisbursementId !== null ? "Update Disbursement" : "Add Disbursement";
   }
 });
 
-document.getElementById("logout-btn").addEventListener("click", () => {
+byId("logout-btn").addEventListener("click", () => {
   clearToken();
   window.location.href = "login.html";
 });
 
 (async function init() {
-  document.getElementById("disbursement_date").valueAsDate = new Date();
+  dateInput.valueAsDate = new Date();
 
   try {
     await loadDisbursements();
   } catch (err) {
-    showError(err.message || "Failed to load PTPTN data.");
+    showError(errorMessage(err, "Failed to load PTPTN data."));
   }
 })();
