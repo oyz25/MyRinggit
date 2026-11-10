@@ -5,7 +5,7 @@
 
 const THEME_KEY = "myringgit_theme";
 
-function applyTheme(theme) {
+function applyTheme(theme: string): void {
   document.documentElement.setAttribute("data-theme", theme);
 }
 

@@ -7,26 +7,38 @@
  * parseFloat() before use.
  */
 
-const errorMessage = document.getElementById("error-message");
+import { api, clearToken, errorMessage } from "./api";
+import { renderExpenseBreakdownChart } from "./charts";
+import { byId } from "./dom";
+import { MONTH_NAMES, formatCurrency, formatDate } from "./format";
+import { daysRemainingLabel, latestDisbursement, semesterEndDate, shortfallFor } from "./semester";
+import type {
+  Category,
+  CategoryLimitAlert,
+  DashboardSummary,
+  ExpenseDayTotal,
+  HealthScore,
+  LivingExpenseCountdown,
+  PtptnDisbursement,
+  User,
+} from "./types";
 
-function showError(message) {
-  errorMessage.textContent = message;
-  errorMessage.classList.remove("hidden");
-}
+const errorEl = byId("error-message");
 
-function formatCurrency(value) {
-  return `RM ${parseFloat(value).toFixed(2)}`;
+function showError(message: string): void {
+  errorEl.textContent = message;
+  errorEl.classList.remove("hidden");
 }
 
 // ─── Alert banner ──────────────────────────────────────────────────────────
 
-async function loadAlertBanner() {
-  const banner = document.getElementById("alert-banner");
-  const list = document.getElementById("alert-list");
+async function loadAlertBanner(): Promise<void> {
+  const banner = byId("alert-banner");
+  const list = byId("alert-list");
 
   const [alerts, categories] = await Promise.all([
-    api.get("/categories/limits/alerts"),
-    api.get("/categories?type=expense"),
+    api.get<CategoryLimitAlert[]>("/categories/limits/alerts"),
+    api.get<Category[]>("/categories?type=expense"),
   ]);
 
   if (alerts.length === 0) return;
@@ -54,22 +66,22 @@ async function loadAlertBanner() {
 
 // ─── Summary cards + category chart ───────────────────────────────────────
 
-async function loadSummary() {
-  const summary = await api.get("/dashboard/summary");
+async function loadSummary(): Promise<void> {
+  const summary = await api.get<DashboardSummary>("/dashboard/summary");
 
   const totalIncome = parseFloat(summary.total_income);
   const totalExpenses = parseFloat(summary.total_expenses);
   const netBalance = parseFloat(summary.net_balance);
 
-  document.getElementById("summary-income").textContent = formatCurrency(totalIncome);
-  document.getElementById("summary-expenses").textContent = formatCurrency(totalExpenses);
+  byId("summary-income").textContent = formatCurrency(totalIncome);
+  byId("summary-expenses").textContent = formatCurrency(totalExpenses);
 
-  const netEl = document.getElementById("summary-net");
+  const netEl = byId("summary-net");
   netEl.textContent = formatCurrency(netBalance);
   netEl.classList.add(netBalance >= 0 ? "positive" : "negative");
 
-  const breakdownCanvas = document.getElementById("expense-breakdown-chart");
-  const breakdownEmpty = document.getElementById("expense-breakdown-empty");
+  const breakdownCanvas = byId<HTMLCanvasElement>("expense-breakdown-chart");
+  const breakdownEmpty = byId("expense-breakdown-empty");
 
   if (summary.expense_breakdown.length === 0) {
     breakdownCanvas.classList.add("hidden");
@@ -81,20 +93,20 @@ async function loadSummary() {
 
 // ─── Streak ────────────────────────────────────────────────────────────────
 
-async function loadStreaks() {
-  const me = await api.get("/auth/me");
-  document.getElementById("summary-current-streak").textContent =
+async function loadStreaks(): Promise<void> {
+  const me = await api.get<User>("/auth/me");
+  byId("summary-current-streak").textContent =
     `${me.current_streak} day${me.current_streak === 1 ? "" : "s"}`;
 }
 
 // ─── Compact health score widget ───────────────────────────────────────────
 
-async function loadHealthScore() {
-  const container = document.getElementById("health-score-container");
+async function loadHealthScore(): Promise<void> {
+  const container = byId("health-score-container");
 
-  let score;
+  let score: HealthScore;
   try {
-    score = await api.get("/health-score/latest");
+    score = await api.get<HealthScore>("/health-score/latest");
   } catch {
     container.innerHTML = `
       <div class="chart-empty" style="height: auto; padding: 1.5rem 0.5rem;">
@@ -105,14 +117,14 @@ async function loadHealthScore() {
   }
 
   const overall = parseFloat(score.overall_score);
-  const scoreEl = document.getElementById("health-score-value");
+  const scoreEl = byId("health-score-value");
   scoreEl.textContent = overall.toFixed(0);
   scoreEl.style.color =
     overall >= 70 ? "var(--color-success)" :
     overall >= 50 ? "var(--color-warning)" :
     "var(--color-danger)";
 
-  document.getElementById("health-score-breakdown").innerHTML = `
+  byId("health-score-breakdown").innerHTML = `
     <div class="breakdown-row"><span>Savings Rate</span><span>${parseFloat(score.savings_rate).toFixed(1)}%</span></div>
     <div class="breakdown-row"><span>Budget Adherence</span><span>${parseFloat(score.budget_adherence_score).toFixed(1)}%</span></div>
     <div class="breakdown-row"><span>Consistency</span><span>${parseFloat(score.consistency_score).toFixed(1)}%</span></div>
@@ -122,7 +134,7 @@ async function loadHealthScore() {
 
 // ─── Monthly spending heatmap ──────────────────────────────────────────────
 
-function heatLevel(amount, max) {
+function heatLevel(amount: number, max: number): 0 | 1 | 2 | 3 | 4 {
   if (amount === 0 || max === 0) return 0;
   const ratio = amount / max;
   if (ratio <= 0.25) return 1;
@@ -131,39 +143,34 @@ function heatLevel(amount, max) {
   return 4;
 }
 
-async function loadHeatmap() {
+async function loadHeatmap(): Promise<void> {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth(); // 0-indexed
 
-  const pad = (n) => String(n).padStart(2, "0");
+  const pad = (n: number) => String(n).padStart(2, "0");
   const firstOfMonth = `${year}-${pad(month + 1)}-01`;
   const lastDay = new Date(year, month + 1, 0).getDate();
   const lastOfMonth = `${year}-${pad(month + 1)}-${pad(lastDay)}`;
 
-  const rows = await api.get(
-    `/expenses/summary/by-day?start_date=${firstOfMonth}&end_date=${lastOfMonth}`
+  const rows = await api.get<ExpenseDayTotal[]>(
+    `/expenses/summary/by-day?start_date=${firstOfMonth}&end_date=${lastOfMonth}`,
   );
 
-  const totalsMap = {};
+  const totalsMap: Record<string, number> = {};
   for (const row of rows) {
     totalsMap[row.date] = parseFloat(row.total_amount);
   }
   const max = Object.values(totalsMap).reduce((a, b) => Math.max(a, b), 0);
 
-  const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
-  ];
-  document.getElementById("heatmap-month-label").textContent =
-    `${monthNames[month]} ${year}`;
+  byId("heatmap-month-label").textContent = `${MONTH_NAMES[month]} ${year}`;
 
   // Monday-anchored offset: JS getDay() returns 0=Sun..6=Sat
   const firstDate = new Date(year, month, 1);
   let startOffset = firstDate.getDay() - 1;
   if (startOffset < 0) startOffset = 6; // Sunday → column 6 (last)
 
-  const grid = document.getElementById("heatmap-grid");
+  const grid = byId("heatmap-grid");
   grid.innerHTML = "";
 
   // Empty leading cells
@@ -192,38 +199,16 @@ async function loadHeatmap() {
 
 // ─── PTPTN current semester ────────────────────────────────────────────────
 
-function semesterEndDate(disbursementDateStr) {
-  const d = new Date(`${disbursementDateStr}T00:00:00`);
-  d.setMonth(d.getMonth() + 3);
-  return d;
-}
+async function loadCurrentSemester(): Promise<void> {
+  const content = byId("current-semester-content");
+  const records = await api.get<PtptnDisbursement[]>("/ptptn");
 
-function formatDate(d) {
-  return d.toISOString().slice(0, 10);
-}
-
-function daysRemainingLabel(endDate) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const diffDays = Math.round((endDate - today) / (1000 * 60 * 60 * 24));
-  return diffDays >= 0 ? `${diffDays} day${diffDays === 1 ? "" : "s"}` : "Semester ended";
-}
-
-function shortfallFor(disbursement) {
-  const shortfall = parseFloat(disbursement.total_semester_tuition) - parseFloat(disbursement.amount);
-  return shortfall > 0 ? shortfall : 0;
-}
-
-async function loadCurrentSemester() {
-  const content = document.getElementById("current-semester-content");
-  const records = await api.get("/ptptn");
-
-  if (records.length === 0) {
+  const latest = latestDisbursement(records);
+  if (!latest) {
     content.innerHTML = '<p class="countdown-message">No PTPTN disbursement recorded yet.</p>';
     return;
   }
 
-  const latest = [...records].sort((a, b) => (a.disbursement_date < b.disbursement_date ? 1 : -1))[0];
   const endDate = semesterEndDate(latest.disbursement_date);
   const shortfall = shortfallFor(latest);
 
@@ -255,9 +240,9 @@ async function loadCurrentSemester() {
 
 // ─── Living expense countdown ──────────────────────────────────────────────
 
-async function loadLivingExpenseCountdown() {
-  const content = document.getElementById("living-expense-countdown-content");
-  const countdown = await api.get("/dashboard/living-expense-countdown");
+async function loadLivingExpenseCountdown(): Promise<void> {
+  const content = byId("living-expense-countdown-content");
+  const countdown = await api.get<LivingExpenseCountdown>("/dashboard/living-expense-countdown");
 
   if (countdown.message) {
     content.innerHTML = `<p class="countdown-message">${countdown.message}</p>`;
@@ -296,7 +281,7 @@ async function loadLivingExpenseCountdown() {
 
 // ─── Init ──────────────────────────────────────────────────────────────────
 
-document.getElementById("logout-btn").addEventListener("click", () => {
+byId("logout-btn").addEventListener("click", () => {
   clearToken();
   window.location.href = "login.html";
 });
@@ -313,6 +298,6 @@ document.getElementById("logout-btn").addEventListener("click", () => {
       loadLivingExpenseCountdown(),
     ]);
   } catch (err) {
-    showError(err.message || "Failed to load dashboard data.");
+    showError(errorMessage(err, "Failed to load dashboard data."));
   }
 })();

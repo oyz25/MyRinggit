@@ -3,60 +3,59 @@
  * summary report for that period.
  */
 
-const errorMessage = document.getElementById("error-message");
-const successMessage = document.getElementById("success-message");
-const reportForm = document.getElementById("report-form");
-const monthSelect = document.getElementById("month");
-const yearSelect = document.getElementById("year");
-const downloadBtn = document.getElementById("download-report-btn");
+import { API_BASE_URL, clearToken, getToken, readErrorDetail, errorMessage } from "./api";
+import { byId } from "./dom";
+import { MONTH_NAMES } from "./format";
 
-const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
+const errorEl = byId("error-message");
+const successEl = byId("success-message");
+const reportForm = byId<HTMLFormElement>("report-form");
+const monthSelect = byId<HTMLSelectElement>("month");
+const yearSelect = byId<HTMLSelectElement>("year");
+const downloadBtn = byId<HTMLButtonElement>("download-report-btn");
 
-function showError(message) {
-  successMessage.classList.add("hidden");
-  errorMessage.textContent = message;
-  errorMessage.classList.remove("hidden");
+function showError(message: string): void {
+  successEl.classList.add("hidden");
+  errorEl.textContent = message;
+  errorEl.classList.remove("hidden");
 }
 
-function showSuccess(message) {
-  errorMessage.classList.add("hidden");
-  successMessage.textContent = message;
-  successMessage.classList.remove("hidden");
+function showSuccess(message: string): void {
+  errorEl.classList.add("hidden");
+  successEl.textContent = message;
+  successEl.classList.remove("hidden");
 }
 
-function hideMessages() {
-  errorMessage.classList.add("hidden");
-  successMessage.classList.add("hidden");
+function hideMessages(): void {
+  errorEl.classList.add("hidden");
+  successEl.classList.add("hidden");
 }
 
-function populateSelectors() {
+function populateSelectors(): void {
   const now = new Date();
 
   MONTH_NAMES.forEach((name, index) => {
     const option = document.createElement("option");
-    option.value = index + 1;
+    option.value = String(index + 1);
     option.textContent = name;
     monthSelect.appendChild(option);
   });
-  monthSelect.value = now.getMonth() + 1;
+  monthSelect.value = String(now.getMonth() + 1);
 
   const currentYear = now.getFullYear();
   for (let year = currentYear; year >= currentYear - 4; year--) {
     const option = document.createElement("option");
-    option.value = year;
-    option.textContent = year;
+    option.value = String(year);
+    option.textContent = String(year);
     yearSelect.appendChild(option);
   }
-  yearSelect.value = currentYear;
+  yearSelect.value = String(currentYear);
 }
 
-function extractFilename(contentDisposition, fallback) {
+function extractFilename(contentDisposition: string | null, fallback: string): string {
   if (!contentDisposition) return fallback;
   const match = contentDisposition.match(/filename="?([^"]+)"?/);
-  return match ? match[1] : fallback;
+  return match?.[1] ?? fallback;
 }
 
 reportForm.addEventListener("submit", async (event) => {
@@ -82,20 +81,13 @@ reportForm.addEventListener("submit", async (event) => {
     }
 
     if (!response.ok) {
-      let detail = "No data available for the selected month.";
-      try {
-        const errorBody = await response.json();
-        detail = errorBody.detail || detail;
-      } catch {
-        // response body wasn't JSON, keep the default message
-      }
-      throw new Error(detail);
+      throw new Error(await readErrorDetail(response, "No data available for the selected month."));
     }
 
     const blob = await response.blob();
     const filename = extractFilename(
       response.headers.get("Content-Disposition"),
-      `myringgit-report-${year}-${String(month).padStart(2, "0")}.pdf`
+      `myringgit-report-${year}-${month.padStart(2, "0")}.pdf`,
     );
 
     const url = URL.createObjectURL(blob);
@@ -107,16 +99,16 @@ reportForm.addEventListener("submit", async (event) => {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 
-    showSuccess(`Report for ${MONTH_NAMES[month - 1]} ${year} downloaded.`);
+    showSuccess(`Report for ${MONTH_NAMES[Number(month) - 1]} ${year} downloaded.`);
   } catch (err) {
-    showError(err.message || "Failed to generate report.");
+    showError(errorMessage(err, "Failed to generate report."));
   } finally {
     downloadBtn.disabled = false;
     downloadBtn.textContent = "Download Monthly Report";
   }
 });
 
-document.getElementById("logout-btn").addEventListener("click", () => {
+byId("logout-btn").addEventListener("click", () => {
   clearToken();
   window.location.href = "login.html";
 });
